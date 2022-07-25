@@ -7,4 +7,4 @@ let
     inherit fontforge writeScript;
   };
 in
-  non-variable-noto-fonts.noto-fonts
+  non-variable-noto-fonts.noto-fonts-cjk-sans

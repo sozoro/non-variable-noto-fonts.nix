@@ -16,15 +16,52 @@
 }:
 
 let
-  familyPrefix = "Non-Variable";
-  renameScript = writeScript "renameScript.pe" ''
+  familyPrefix    = "";
+  # familyPrefix    = "Non-Variable";
+  renameScriptTTF = writeScript "renameScriptTTF.pe" ''
     Open($1);
     SetFontNames("${familyPrefix}-" + $fontname, "${familyPrefix} " + $familyname, "${familyPrefix} "+ $fullname);
     Print("-----------");
     Print("fontname  : " + $fontname);
     Print("familyname: " + $familyname);
     Print("fullname  : " + $fullname);
-    Save($1);
+    Generate($1);
+  '';
+
+  renameScriptTTC = writeScript "renameScriptTTC.pe" ''
+    fonts = FontsInFile($1);
+    n = SizeOf(fonts);
+    i = 0;
+    while (i < n)
+      Open($1 + "(" + fonts[i] + ")");
+      SetFontNames("${familyPrefix}-" + $fontname, "${familyPrefix} " + $familyname, "${familyPrefix} "+ $fullname);
+      Print("-----------");
+      Print("fontname  : " + $fontname);
+      Print("familyname: " + $familyname);
+      Print("fullname  : " + $fullname);
+      ++i;
+    endloop
+    Generate($1);
+  '';
+
+  renameFonts = if familyPrefix == "" then "" else ''
+    pushd $out_ttf
+    ls
+    chmod 744 *.ttf *.ttc
+    for fontFileName in *.ttf;
+    do
+      newFontFileName=Non-Variable-$fontFileName
+      mv $fontFileName $newFontFileName
+      fontforge -script ${renameScriptTTF} $newFontFileName
+    done
+    for fontFileName in *.ttc;
+    do
+      newFontFileName=Non-Variable-$fontFileName
+      mv $fontFileName $newFontFileName
+      fontforge -script ${renameScriptTTC} $newFontFileName
+    done
+    chmod 444 *.ttf *.ttc
+    popd
   '';
 
   mkNoto = { pname, weights }:
@@ -51,19 +88,7 @@ let
         install -m444 -Dt $out_ttf unhinted/*/*-${weights}.ttf
         install -m444 -Dt $out_ttf hinted/*/*-${weights}.ttf
       ''
-      +
-      (if familyPrefix == "" then "" else ''
-        pushd $out_ttf
-        chmod 744 *.ttf
-        for fontFileName in *.ttf;
-        do
-          newFontFileName=Non-Variable-$fontFileName
-          mv $fontFileName $newFontFileName
-          fontforge -script ${renameScript} $newFontFileName
-        done
-        chmod 444 *.ttf
-        popd
-      '');
+      + renameFonts;
 
       buildInputs = [ fontforge ];
 
@@ -103,8 +128,12 @@ let
       };
 
       installPhase = ''
-        install -m444 -Dt $out/share/fonts/opentype/noto-cjk ${typeface}/OTC/*.ttc
-      '';
+        local out_ttf=$out/share/fonts/opentype/noto-cjk
+        install -m444 -Dt $out_ttf ${typeface}/OTC/*.ttc
+      ''
+      + renameFonts;
+      
+      buildInputs = [ fontforge ];
 
       passthru.tests.noto-fonts = nixosTests.noto-fonts;
 
