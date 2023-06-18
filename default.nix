@@ -124,7 +124,7 @@ let
         owner = "googlefonts";
         repo = "noto-cjk";
         inherit rev sha256;
-        sparseCheckout = "${typeface}/OTC";
+        sparseCheckout = [ "${typeface}/OTC" ];
       };
 
       installPhase = ''
