@@ -24,9 +24,11 @@
         };
       };
 
-      installFont = { fontName, ... }: { pkgs, ... }: (addpkg { inherit pkgs; }) // {
-        fonts.packages = [ pkgs."${self.name}"."${fontName}" ];
-      };
+      installFont = { fontName, ... }: { pkgs, ... }: {};
+
+      # installFont = { fontName, ... }: { pkgs, ... }: (addpkg { inherit pkgs; }) // {
+      #   fonts.packages = [ pkgs."${self.name}"."${fontName}" ];
+      # };
     };
   };
 }
