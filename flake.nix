@@ -24,7 +24,7 @@
         };
       };
 
-      installFonts = { notoFonts, ... }: { pkgs, ... }: (addpkg { inherit pkgs; }) // {
+      installFonts = notoFonts: { pkgs, ... }: (addpkg { inherit pkgs; }) // {
         fonts.packages = map (fontName: pkgs."${self.name}"."${fontName}") notoFonts;
       };
     };
